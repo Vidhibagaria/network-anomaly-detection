@@ -24,6 +24,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
+PREFIX = settings.API_PREFIX
 
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
@@ -49,8 +50,10 @@ app = FastAPI(
         "trained on the CIC-IDS 2017 dataset."
     ),
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=f"{PREFIX}/docs",
+    redoc_url=f"{PREFIX}/redoc",
+    openapi_url=f"{PREFIX}/openapi.json",
+    swagger_ui_oauth2_redirect_url=f"{PREFIX}/docs/oauth2-redirect",
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
@@ -63,8 +66,6 @@ app.add_middleware(
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
-PREFIX = settings.API_PREFIX
-
 app.include_router(data_router, prefix=PREFIX)
 app.include_router(training_router, prefix=PREFIX)
 app.include_router(prediction_router, prefix=PREFIX)
@@ -77,6 +78,6 @@ async def root():
     return {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "docs": "/docs",
+        "docs": f"{PREFIX}/docs",
         "health": f"{PREFIX}/health",
     }

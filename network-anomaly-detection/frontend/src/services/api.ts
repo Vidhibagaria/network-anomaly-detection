@@ -5,7 +5,16 @@
 
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+// Vercel routes /api/* to the backend service. REACT_APP_API_URL remains an
+// optional build-time override for deployments where the API uses another host.
+export const BASE_URL = process.env.REACT_APP_API_URL || '/api/v1';
+
+export const getWebSocketUrl = (path: string): string => {
+  const base = new URL(`${BASE_URL.replace(/\/$/, '')}/`, window.location.origin);
+  const url = new URL(path.replace(/^\//, ''), base);
+  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+  return url.toString();
+};
 
 const api = axios.create({
   baseURL: BASE_URL,

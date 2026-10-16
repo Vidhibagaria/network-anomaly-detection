@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getModels, getStatistics, Prediction, Statistics } from '../services/api';
+import { getModels, getStatistics, getWebSocketUrl, Prediction, Statistics } from '../services/api';
 import { useToast } from '../App';
 
 export default function LiveDetectionPage() {
@@ -52,8 +52,9 @@ export default function LiveDetectionPage() {
       return;
     }
 
-    const wsUrl = process.env.REACT_APP_API_URL?.replace('http', 'ws') || 'ws://localhost:8000/api/v1';
-    const ws = new WebSocket(`${wsUrl}/predict/stream/${selectedModel}?fps=5`);
+    const ws = new WebSocket(
+      getWebSocketUrl(`/predict/stream/${selectedModel}?fps=5`)
+    );
     
     ws.onopen = () => {
       setIsSimulating(true);

@@ -4,6 +4,8 @@ Backend Configuration
 """
 
 import os
+import shutil
+import tempfile
 from pathlib import Path
 from pydantic_settings import BaseSettings
 from pydantic import Field
@@ -11,6 +13,25 @@ from typing import Optional
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+IS_VERCEL = bool(os.getenv("VERCEL"))
+VERCEL_RUNTIME_DIR = Path(tempfile.gettempdir()) / "network-anomaly-detection"
+
+DEFAULT_MODELS_DIR = (
+    VERCEL_RUNTIME_DIR / "trained_models"
+    if IS_VERCEL else BASE_DIR / "trained_models"
+)
+DEFAULT_UPLOADS_DIR = (
+    VERCEL_RUNTIME_DIR / "uploads"
+    if IS_VERCEL else BASE_DIR / "uploads"
+)
+DEFAULT_LOGS_DIR = (
+    VERCEL_RUNTIME_DIR / "logs"
+    if IS_VERCEL else BASE_DIR / "logs"
+)
+DEFAULT_DB_PATH = (
+    VERCEL_RUNTIME_DIR / "database" / "anomaly_detection.db"
+    if IS_VERCEL else BASE_DIR / "database" / "anomaly_detection.db"
+)
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables / config."""
@@ -23,10 +44,10 @@ class Settings(BaseSettings):
 
     # ─── Paths ────────────────────────────────────────────────────────────────
     DATA_DIR: Path = BASE_DIR / "data"
-    MODELS_DIR: Path = BASE_DIR / "trained_models"
-    UPLOADS_DIR: Path = BASE_DIR / "uploads"
-    LOGS_DIR: Path = BASE_DIR / "logs"
-    DB_PATH: Path = BASE_DIR / "database" / "anomaly_detection.db"
+    MODELS_DIR: Path = DEFAULT_MODELS_DIR
+    UPLOADS_DIR: Path = DEFAULT_UPLOADS_DIR
+    LOGS_DIR: Path = DEFAULT_LOGS_DIR
+    DB_PATH: Path = DEFAULT_DB_PATH
 
     # ─── Dataset ──────────────────────────────────────────────────────────────
     DATASET_PATH: Optional[str] = None
@@ -78,3 +99,31 @@ settings = Settings()
 for d in [settings.DATA_DIR, settings.MODELS_DIR, settings.UPLOADS_DIR,
           settings.LOGS_DIR, settings.DB_PATH.parent]:
     d.mkdir(parents=True, exist_ok=True)
+
+
+def _seed_vercel_runtime_files() -> None:
+    """Copy bundled mutable artifacts into Vercel's writable scratch space."""
+    if not IS_VERCEL:
+        return
+
+    bundled_models = BASE_DIR / "trained_models"
+    if settings.MODELS_DIR == DEFAULT_MODELS_DIR and bundled_models.exists():
+        for source in bundled_models.iterdir():
+            destination = settings.MODELS_DIR / source.name
+            if destination.exists():
+                continue
+            if source.is_dir():
+                shutil.copytree(source, destination)
+            else:
+                shutil.copy2(source, destination)
+
+    bundled_db = BASE_DIR / "database" / "anomaly_detection.db"
+    if (
+        settings.DB_PATH == DEFAULT_DB_PATH
+        and bundled_db.exists()
+        and not settings.DB_PATH.exists()
+    ):
+        shutil.copy2(bundled_db, settings.DB_PATH)
+
+
+_seed_vercel_runtime_files()
