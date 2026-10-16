@@ -42,8 +42,8 @@ export default function PredictionPage() {
     getModels().then(res => {
       setModels(res.models || {});
       const trainedList = Object.entries(res.models || {}).filter(([, v]) => v.trained).map(([k]) => k);
-      if (trainedList.length > 0 && !trainedList.includes(selectedModel)) {
-        setSelectedModel(trainedList[0]);
+      if (trainedList.length > 0) {
+        setSelectedModel(current => trainedList.includes(current) ? current : trainedList[0]);
       }
     }).catch(console.error);
 
@@ -56,7 +56,7 @@ export default function PredictionPage() {
       console.error(err);
       addToast('error', 'Unable to load the verified single-flow samples');
     });
-  }, []);
+  }, [addToast]);
 
   const trainedModelNames = Object.entries(models).filter(([, v]) => v.trained).map(([k]) => k);
 

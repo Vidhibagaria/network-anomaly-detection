@@ -1,10 +1,10 @@
 /**
  * Overview / Dashboard page — real data from backend statistics endpoint.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid,
+  PieChart, Pie, Cell, Legend, CartesianGrid,
 } from 'recharts';
 import { getStatistics, getModels, Statistics } from '../services/api';
 
@@ -19,7 +19,7 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const [s, m] = await Promise.all([getStatistics(), getModels()]);
       setStats(s);
@@ -30,9 +30,9 @@ export default function OverviewPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t); }, []);
+  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t); }, [load]);
 
   const attackChartData = stats
     ? Object.entries(stats.attack_distribution)

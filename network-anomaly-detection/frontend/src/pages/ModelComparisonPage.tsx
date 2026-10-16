@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
@@ -14,7 +14,7 @@ export default function ModelComparisonPage() {
   const [data, setData] = useState<ComparisonResult | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchComparison = async () => {
+  const fetchComparison = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getModelComparison();
@@ -25,11 +25,11 @@ export default function ModelComparisonPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast]);
 
   useEffect(() => {
     fetchComparison();
-  }, []);
+  }, [fetchComparison]);
 
   const modelsList = data ? Object.entries(data.models || {}) : [];
   const comparisonRows = data?.comparison_table || [];

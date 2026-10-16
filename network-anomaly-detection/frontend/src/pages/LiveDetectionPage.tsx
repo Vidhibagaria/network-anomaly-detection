@@ -20,8 +20,8 @@ export default function LiveDetectionPage() {
     getModels().then(res => {
       const trained = Object.entries(res.models || {}).filter(([, v]) => v.trained).map(([k]) => k);
       setModels(res.models);
-      if (trained.length > 0 && !selectedModel) {
-        setSelectedModel(trained[0]);
+      if (trained.length > 0) {
+        setSelectedModel(current => current || trained[0]);
       }
     }).catch(console.error);
     
@@ -98,7 +98,12 @@ export default function LiveDetectionPage() {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => stopSimulation();
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
   }, []);
 
   const trainedModelNames = Object.entries(models).filter(([, v]) => v.trained).map(([k]) => k);

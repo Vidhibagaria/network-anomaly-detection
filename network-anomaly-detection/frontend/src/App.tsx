@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import './index.css';
 import { getHealth } from './services/api';
 
@@ -33,11 +33,11 @@ function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [alertCount, setAlertCount] = useState(0);
 
-  const addToast = (type: Toast['type'], message: string) => {
+  const addToast = useCallback((type: Toast['type'], message: string) => {
     const id = Math.random().toString(36).slice(2);
     setToasts(prev => [...prev, { id, type, message }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
-  };
+  }, []);
 
   // Backend health check
   useEffect(() => {

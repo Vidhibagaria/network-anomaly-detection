@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAlerts, acknowledgeAlert, seedAlerts, Alert } from '../services/api';
 import { useToast } from '../App';
 
@@ -16,7 +16,7 @@ export default function AlertsPage({ onCountChange }: AlertsPageProps) {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
 
-  const fetchAlertsList = async (showLoadingState = false) => {
+  const fetchAlertsList = useCallback(async (showLoadingState = false) => {
     if (showLoadingState) setLoading(true);
     try {
       const res = await getAlerts({ limit: 300 });
@@ -34,11 +34,11 @@ export default function AlertsPage({ onCountChange }: AlertsPageProps) {
     } finally {
       if (showLoadingState) setLoading(false);
     }
-  };
+  }, [addToast, onCountChange]);
 
   useEffect(() => {
     fetchAlertsList(true);
-  }, []);
+  }, [fetchAlertsList]);
 
   useEffect(() => {
     if (!autoRefresh) return;
@@ -46,7 +46,7 @@ export default function AlertsPage({ onCountChange }: AlertsPageProps) {
       fetchAlertsList(false);
     }, 5000);
     return () => clearInterval(interval);
-  }, [autoRefresh]);
+  }, [autoRefresh, fetchAlertsList]);
 
   const handleAcknowledge = async (id: number) => {
     try {
