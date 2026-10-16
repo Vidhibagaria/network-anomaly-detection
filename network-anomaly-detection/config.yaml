@@ -1,0 +1,28 @@
+RANDOM_SEED: 42
+TEST_SIZE: 0.2
+VALIDATION_SIZE: 0.1
+LABEL_COLUMN: "Label"
+MAX_FILE_SIZE_MB: 500
+
+random_forest:
+  n_estimators: 100
+  max_depth: null
+  min_samples_split: 2
+  min_samples_leaf: 1
+  max_features: "sqrt"
+  class_weight: "balanced"
+
+lstm:
+  sequence_length: 10
+  units: 64
+  dropout: 0.2
+  epochs: 20
+  batch_size: 256
+  max_samples: 200000
+
+autoencoder:
+  encoding_dims: [64, 32, 16]
+  epochs: 30
+  batch_size: 256
+  threshold_percentile: 95.0
+  max_samples: 200000
